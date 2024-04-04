@@ -13,11 +13,15 @@ with open('scaler.pkl', 'rb') as f:
     scaler = pickle.load(f)
     
 
+origins = [
+    "https://trading-backend-vyzs.onrender.com",  # replace with the origin of your frontend
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Update this with your frontend URL
+    allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["POST"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
