@@ -6,7 +6,6 @@ import tensorflow as tf
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Body
 app = FastAPI()
-from sklearn.preprocessing import MinMaxScaler
 import uvicorn
 # Load the model and scaler from the pickle files
 MODEL = tf.keras.models.load_model('model/')
@@ -17,7 +16,7 @@ with open('scaler.pkl', 'rb') as f:
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Update this with your frontend URL
+    allow_origins=["*"],  # Update this with your frontend URL
     allow_credentials=True,
     allow_methods=["POST"],
     allow_headers=["*"],
@@ -26,17 +25,23 @@ app.add_middleware(
 class InputData(BaseModel):
     data: list
 
+
+@app.get('/')
+def read_root():
+    return "Welcome to Trading Backend"
+
+
 @app.post("/predict/")
 async def predict(data: InputData = Body):
-    print("Data Received",data)
-    input_array = np.array(data.data[0])
-    print("Data Received",input_array)
     
-    scaled_input = scaler.fit_transform(input_array.reshape(-1, 1))
-    print("Scaled Input",scaled_input)
+    input_array = np.array(data.data[0])
+    
+    
+    scaled_input = scaler.transform(input_array.reshape(-1, 1))
+    
     n_steps = 100
     temp_input = scaled_input.flatten().tolist()  
-    print("Temp Input",temp_input)
+    
     lst_output = []
     i = 0
     while i < 30:
@@ -57,9 +62,9 @@ async def predict(data: InputData = Body):
             lst_output.extend(yhat.tolist())
             i += 1
     # Inverse transform the predicted values before returning them
-    print("output",lst_output)
+    
     response = scaler.inverse_transform(np.array(lst_output)).flatten().tolist()
-    print("response",response)
+ 
     return {"prediction": response}
 if(__name__) == '__main__':
         uvicorn.run(
